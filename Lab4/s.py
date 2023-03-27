@@ -35,30 +35,31 @@ if not os.path.exists(SERVER_QUEUE_PATH):
     os.mkfifo(SERVER_QUEUE_PATH)
 
 print("Server is running...")
-
+print("PID: ", os.getpid())
+q = []
 # Pętla nieskończona serwera
 while True:
-
+    time.sleep(20)
     with open(SERVER_QUEUE_PATH, 'rb', buffering=0) as server_queue:
         # Odczytanie zapytania od klienta
-        query = server_queue.readline().strip().decode()
-        if not query:
-            continue
-
+        
+     
+        for line in server_queue:
+            print(line)
         # Rozdzielenie ID i ścieżki do kolejki klienta
-        id, client_queue_path = query.split(',')
-        id = int(id)
+            id, client_queue_path = line.decode().strip().split(',')
+            id = int(id)
 
         # Wyszukanie nazwiska w bazie danych
-        if id in DATABASE:
-            response = DATABASE[id]
-        else:
-            response = "Nie ma"
+            if id in DATABASE:
+                response = DATABASE[id]
+            else:
+                response = "Nie ma"
 
         # Wysłanie odpowiedzi do klienta
-        response_bytes = response.encode()
-        response_length = len(response_bytes)
-        message = response_length.to_bytes(4, byteorder='big') + response_bytes
+            response_bytes = response.encode()
+            response_length = len(response_bytes)
+            message = response_length.to_bytes(4, byteorder='big') + response_bytes
 
-        with open(client_queue_path, 'wb', buffering=0) as client_queue:
-            client_queue.write(message)
+            with open(client_queue_path, 'wb', buffering=0) as client_queue:
+                client_queue.write(message)

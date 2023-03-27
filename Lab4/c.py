@@ -15,7 +15,7 @@ print(f'Created FIFO: {client_queue_path}')
 
 # Wysłanie zapytania do serwera
 id = input('Enter ID: ')
-request = f'{id},{client_queue_path}'.encode()
+request = f'{id},{client_queue_path}\n'.encode()
 with open('./server', 'wb', buffering=0) as server_queue:
     server_queue.write(request)
 
