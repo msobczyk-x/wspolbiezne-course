@@ -11,7 +11,6 @@ while True:
     
     file_name = './client'+str(number)
     print('Created fifo: '+file_name)
-    client_fifo_hash = hashlib.md5(file_name.encode('utf-8')).hexdigest()
     id = input('Enter ID: ') 
     print('Sending request to server FIFO: ./server')
     odpowiedz = (str(id)+','+file_name)
