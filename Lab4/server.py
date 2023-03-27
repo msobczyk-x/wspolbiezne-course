@@ -41,46 +41,41 @@ koniec = False
 
 while not koniec:
     print("Oczekiwanie na zapytanie od klienta...")
-
-    with open(sciezka_serwer) as serwer:
-        print("Otrzymano zapytanie od klienta")
+    time.sleep(1)
+    server_fifo = open(sciezka_serwer, 'r')
+    print("Otrzymano zapytanie od klienta")
         # Odczytanie zapytania od klienta
-        dane = serwer.readline().split(",")
         
-        id = int(dane[0])
-        sciezka_klienta = dane[1]
-        print("ID: " + str(id))
-        print("Ścieżka klienta: " + sciezka_klienta)
+    dane = server_fifo.readline().split(',')
+    id = int(dane[0])
+    sciezka_klienta = dane[1]
+    print("ID: " + str(id))
+    print("Ścieżka klienta: " + sciezka_klienta)
 
         # Szukanie wpisu w bazie danych
-        wpis = None
-        for postac in baza_danych:
+    wpis = None
+    for postac in baza_danych:
             if postac.id == id:
                 wpis = postac
 
         # Wysłanie odpowiedzi do klienta
-        if wpis is not None:
+    if wpis is not None:
             odpowiedz = wpis.nazwisko
-        else:
+    else:
             odpowiedz = "Nie ma"
 
-        dlugosc_odpowiedzi = len(odpowiedz)
-        dlugosc_pakietu = 4 + dlugosc_odpowiedzi
-        pakiet = bytearray(dlugosc_pakietu)
-
-        # Konwersja długości pakietu na 4-bajtowy int w kolejności sieciowej
-        pakiet[0:4] = dlugosc_pakietu.to_bytes(4, byteorder='big')
-
-        # Dodanie odpowiedzi do pakietu
-        pakiet[4:] = odpowiedz.encode('utf-8')
 
         # Zapisanie pakietu do kolejki klienta
-        with open(sciezka_klienta, 'wb') as klient:
-            klient.write(pakiet)
+    klient_fifo = open(sciezka_klienta, 'w')
+    klient_fifo.write(f"{odpowiedz}\n")
+    klient_fifo.flush()
+    klient_fifo.close()
+    server_fifo.close()
+           
 
-        print("\n")
+    print("\n")
         
-        print("Wysłano odpowiedź do klienta")
+    print("Wysłano odpowiedź do klienta")
     # Obsługa sygnałów podczas oczekiwania na kolejne zapytanie
     signal.signal(signal.SIGUSR1, obsluga_sygnalow)
     signal.signal(signal.SIGHUP, obsluga_sygnalow)
