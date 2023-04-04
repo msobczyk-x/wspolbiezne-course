@@ -7,5 +7,4 @@ client_pid = os.getpid()
 input_word = input("Enter word: ")
 server_queue.put([client_pid, input_word])
 
-
 print(client_queue.get(msg_type=client_pid))

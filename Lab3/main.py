@@ -1,6 +1,5 @@
 import os
 import sys
-import re
 filename = sys.argv[1]
 word = sys.argv[2]
 text = ""

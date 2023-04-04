@@ -2,7 +2,7 @@ from ipcqueue import sysvmq
 import time
 server_queue = sysvmq.Queue(1)
 client_queue = sysvmq.Queue(2)
-q_size = server_queue.qsize()
+
 
 dictionary = {
     "kot": "cat",
