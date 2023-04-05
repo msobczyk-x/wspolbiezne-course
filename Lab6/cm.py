@@ -1,8 +1,5 @@
 import posix_ipc
 import os
-import signal
-import mmap
-import pickle
 from multiprocessing import shared_memory
 import numpy as np
 
@@ -50,7 +47,42 @@ semaphore_turn = None
 shrd_mem = None
 turn = 0
 symbol = ""
+symbol_numeric = 1
 mm = None
+
+
+def check_win(nparray, symbol):
+    # check rows
+    for i in range(3):
+        if nparray[i][0] == nparray[i][1] == nparray[i][2] == symbol:
+            return True
+    # check columns
+    for i in range(3):
+        if nparray[0][i] == nparray[1][i] == nparray[2][i] == symbol:
+            return True
+    # check diagonals
+    if nparray[0][0] == nparray[1][1] == nparray[2][2] == symbol:
+        return True
+    if nparray[0][2] == nparray[1][1] == nparray[2][0] == symbol:
+        return True
+    return False
+
+
+def check_tie(nparray):
+    return np.count_nonzero(nparray == 0) == 0
+
+
+def check_lose(nparray, symbol):
+    symbol_c = 0
+    if symbol == 1:
+        symbol_c = 2
+    if symbol == 2:
+        symbol_c = 1
+    return check_win(nparray, symbol_c)
+
+
+def check_move(nparray, move):
+    return move[0] < 3 and move[1] < 3 and nparray[move[0]][move[1]] == 0
 
 
 # main function
@@ -65,13 +97,11 @@ if __name__ == "__main__":
     except posix_ipc.ExistentialError:
         semaphore_turn = posix_ipc.Semaphore("./semaphore_turn")
         symbol = "X"
+        symbol_numeric = 2
 
     print("Welcome to Tic Tac Toe!")
 
     while True:
-
-        if turn == 0:
-            print("Oponnent's turn!")
         with semaphore_turn:
 
             try:
@@ -85,6 +115,15 @@ if __name__ == "__main__":
                 )
                 nparray = np.ndarray((3, 3), dtype=np.int8, buffer=shrd_mem.buf)
 
+            if check_tie(nparray):
+                print("Tie!")
+                break
+            if check_win(nparray, symbol_numeric):
+                print("You win!")
+                break
+            if check_lose(nparray, symbol_numeric):
+                print("You lose!")
+                break
             turn = 1
             if turn:
                 os.system("clear")
@@ -95,6 +134,12 @@ if __name__ == "__main__":
                 choice = choice.split(",")
                 x = int(choice[0])
                 y = int(choice[1])
+                while not check_move(nparray, (y, x)):
+                    print("Invalid move!")
+                    choice = input("Enter your move (X,Y): ")
+                    choice = choice.split(",")
+                    x = int(choice[0])
+                    y = int(choice[1])
                 if symbol == "O":
                     nparray[y][x] = 1
                 else:
