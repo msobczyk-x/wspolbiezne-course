@@ -41,21 +41,11 @@ signal.signal(signal.SIGINT, signal_handler)
 # main function
 
 if __name__ == "__main__":
-    try:
-        data = pickle.dumps(array)
-        shrd_mem = posix_ipc.SharedMemory("./board", posix_ipc.O_CREX, size=len(data))
-        mm = mmap.mmap(shrd_mem.fd, shrd_mem.size)
-        mm.write(data)
 
-    except posix_ipc.ExistentialError:
-        shrd_mem = posix_ipc.SharedMemory("./board")
-        mm = mmap.mmap(shrd_mem.fd, shrd_mem.size)
-        data = mm.read(shrd_mem.size)
-        array = pickle.loads(data)
 
     try:
         semaphore_turn = posix_ipc.Semaphore(
-            "./semaphore_turn", posix_ipc.O_CREX, initial_value=1
+            "./semaphore_turn", posix_ipc.O_CREX, mode=0o777, initial_value=1
         )
         symbol = "O"
     except posix_ipc.ExistentialError:
@@ -65,9 +55,20 @@ if __name__ == "__main__":
     print("Welcome to Tic Tac Toe!")
 
     while True:
-
-        draw_board(array)
+        print("array: " + str(array))
+        
+        if turn == 0:
+            print("Oponnent's turn!")
         with semaphore_turn:
+            
+            try:
+        
+                shrd_mem = posix_ipc.SharedMemory("./board", posix_ipc.O_CREX, 0o777, size=9)
+
+
+            except posix_ipc.ExistentialError:
+                shrd_mem = posix_ipc.SharedMemory("./board", mode=0o777)
+
             turn = 1
             if turn:
                 print("Your turn!")
@@ -79,15 +80,7 @@ if __name__ == "__main__":
                 y = int(choice[1])
                 array[x][y] = symbol
                 turn = 0
-                 # Save the array to shared memory
-                data = pickle.dumps(array)
-                mm.write(data)
+                shrd_mem.close_fd()
+
                 
-
-        # Read the array from shared memory
-
-
-
-        print("Oponnent's turn!")
-        # read the array from shared memory
 
