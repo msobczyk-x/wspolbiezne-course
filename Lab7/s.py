@@ -1,74 +1,49 @@
 import socket
 
-# Set up the server
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_socket.bind(('localhost', 8000))
-print('Server is listening...')
+SERVER_IP = 'localhost'
+SERVER_PORT = 5000
+BUFFER_SIZE = 1024
 
-# Set up the players
-players = {}
-player_addresses = []
-player_scores = {}
-
-# Wait for two players to connect
-while len(players) < 2:
-    data, client_address = server_socket.recvfrom(1024)
-    player_name = data.decode()
-    
-    if player_name in players:
-        server_socket.sendto(b'Name already taken', client_address)
-        continue
-    
-    players[player_name] = client_address
-    player_addresses.append(client_address)
-    player_scores[player_name] = 0
-    
-    server_socket.sendto(b'Welcome to the game!', client_address)
-
-# Start the game
-while True:
-    # Get the moves from the players
-    for player_name, player_address in players.items():
-        server_socket.sendto(b'Your turn. Enter your move (rock/paper/scissors): ', player_address)
-        data, client_address = server_socket.recvfrom(1024)
-        player_move = data.decode().lower()
-        
-        if player_move not in ['rock', 'paper', 'scissors']:
-            server_socket.sendto(b'Invalid move', player_address)
-            continue
-        
-        # Store the player's move
-        player_scores[player_name] += 1
-        if player_scores[player_name] == 3:
-            winner = player_name
-            break
-
-    # Determine the winner
-    if player_scores[players.keys()[0]] == 3:
-        winner = players.keys()[0]
-    elif player_scores[players.keys()[1]] == 3:
-        winner = players.keys()[1]
+def get_game_result(player1_choice, player2_choice):
+    if player1_choice == player2_choice:
+        return 'tie'
+    elif player1_choice == 'p' and player2_choice == 'k':
+        return 'win'
+    elif player1_choice == 'k' and player2_choice == 'n':
+        return 'win'
+    elif player1_choice == 'n' and player2_choice == 'p':
+        return 'win'
     else:
-        # Determine the winner of the round
-        player1_move = player_scores.keys()[0]
-        player2_move = player_scores.keys()[1]
-        if player1_move == player2_move:
-            result = 'Tie!'
-        elif (player1_move == 'rock' and player2_move == 'scissors') or \
-             (player1_move == 'paper' and player2_move == 'rock') or \
-             (player1_move == 'scissors' and player2_move == 'paper'):
-            result = f'{player1_move} beats {player2_move}. {player_scores.keys()[0]} wins the round!'
-            player_scores[player1_move] += 1
-        else:
-            result = f'{player2_move} beats {player1_move}. {player_scores.keys()[1]} wins the round!'
-            player_scores[player2_move] += 1
+        return 'lose'
 
-    # Send the result to the players
-    for player_address in player_addresses:
-        server_socket.sendto(result.encode(), player_address)
-    
-    if winner:
-        # Send the winner to the players
-        for player_address in player_addresses:
-            server_socket.sendto(f'{winner} wins the game!'.encode(), player_address)
-        break
+def print_score(player1_score, player2_score):
+    print(f'Gracz 1: {player1_score}\tGracz 2: {player2_score}')
+
+def play_game():
+    player1_score = 0
+    player2_score = 0
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((SERVER_IP, SERVER_PORT))
+
+    while True:
+        player1_choice, player1_addr = sock.recvfrom(BUFFER_SIZE)
+        player2_choice, player2_addr = sock.recvfrom(BUFFER_SIZE)
+
+        result = get_game_result(player1_choice.decode(), player2_choice.decode())
+        result2 = get_game_result(player2_choice.decode(), player1_choice.decode())
+
+        if result == 'win':
+            player1_score += 1
+        elif result == 'lose':
+            player2_score += 1
+        
+        sock.sendto(f'{player2_choice.decode()},{result}'.encode(), player1_addr)
+        sock.sendto(f'{player1_choice.decode()},{result2}'.encode(), player2_addr)
+
+        print(f'Gracz 1 ({player1_addr[0]}:{player1_addr[1]}): {player1_choice.decode()}\tGracz 2 ({player2_addr[0]}:{player2_addr[1]}): {player2_choice.decode()}\tWynik rundy: {result.upper()}')
+        print_score(player1_score, player2_score)
+
+
+if __name__ == '__main__':
+    play_game()
