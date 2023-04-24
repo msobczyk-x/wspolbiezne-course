@@ -6,8 +6,8 @@ BUFFER_SIZE = 1024
 
 def get_player_choice():
     while True:
-        choice = input('Podaj swój wybór (p - papier, k - kamień, n - nożyce): ').strip().lower()
-        if choice in ('p', 'k', 'n'):
+        choice = input('Podaj swój wybór (p - papier, k - kamień, n - nożyce, koniec): ').strip().lower()
+        if choice in ('p', 'k', 'n', 'koniec'):
             return choice
         else:
             print('Niepoprawny wybór, spróbuj ponownie.')
@@ -31,6 +31,10 @@ def play_game():
                 player_score += 1
             elif result == 'lose':
                 opponent_score += 1
+            elif result == 'koniec':
+                print('Koniec gry')
+                break
+                
 
             print(f'Twój wybór: {player_choice}\tWybór przeciwnika: {server_choice}\tWynik rundy: {result.upper()}')
             print_score(player_score, opponent_score)

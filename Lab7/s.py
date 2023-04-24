@@ -5,7 +5,9 @@ SERVER_PORT = 5000
 BUFFER_SIZE = 1024
 
 def get_game_result(player1_choice, player2_choice):
-    if player1_choice == player2_choice:
+    if player1_choice == 'koniec' or player2_choice == 'koniec':
+        return 'koniec'
+    elif player1_choice == player2_choice:
         return 'tie'
     elif player1_choice == 'p' and player2_choice == 'k':
         return 'win'
@@ -13,6 +15,7 @@ def get_game_result(player1_choice, player2_choice):
         return 'win'
     elif player1_choice == 'n' and player2_choice == 'p':
         return 'win'
+    
     else:
         return 'lose'
 
@@ -38,12 +41,21 @@ def play_game():
         elif result == 'lose':
             player2_score += 1
         
+        
         sock.sendto(f'{player2_choice.decode()},{result}'.encode(), player1_addr)
         sock.sendto(f'{player1_choice.decode()},{result2}'.encode(), player2_addr)
 
+        if result == 'koniec':
+            print('Koniec gry')
+            print("Resetowanie wyników")
+            break
         print(f'Gracz 1 ({player1_addr[0]}:{player1_addr[1]}): {player1_choice.decode()}\tGracz 2 ({player2_addr[0]}:{player2_addr[1]}): {player2_choice.decode()}\tWynik rundy: {result.upper()}')
         print_score(player1_score, player2_score)
 
 
 if __name__ == '__main__':
-    play_game()
+    while True:
+        try:
+            play_game()
+        except KeyboardInterrupt:
+            break
