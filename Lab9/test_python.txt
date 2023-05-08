@@ -1,0 +1,7 @@
+Thread number:  1 Execution time: 2.6447572708129883 seconds
+Thread number:  2 Execution time: 2.7262423038482666 seconds
+Thread number:  8 Execution time: 2.227213144302368 seconds
+Thread number:  16 Execution time: 2.5853331089019775 seconds
+Thread number:  32 Execution time: 1.8659429550170898 seconds
+Thread number:  64 Execution time: 0.4100029468536377 seconds
+Thread number:  128 Execution time: 0.11161112785339355 seconds
